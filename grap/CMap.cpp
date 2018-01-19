@@ -242,6 +242,44 @@ int CMap::getMinEdge(vector<Edge> edgeVec)
 	return edgeIndex;
 }
 
+int CMap::getMaxEdge(vector<Edge> edgeVec)
+{
+	int maxWeight = 0;
+	int edgeIndex = 0;
+	int i = 0;
+
+	for (; i < (int)edgeVec.size(); i++)
+	{
+		if (!edgeVec[i].m_bSelected)
+		{
+			maxWeight = edgeVec[i].m_iWeightValue;
+			edgeIndex = i;
+			break;
+		}
+	}
+
+	if (maxWeight == 0)
+	{
+		return -1;
+	}
+
+	for (; i < (int)edgeVec.size(); i++)
+	{
+		if (edgeVec[i].m_bSelected)
+		{
+			continue;
+		}
+		else {
+			if (maxWeight < edgeVec[i].m_iWeightValue)
+			{
+				maxWeight = edgeVec[i].m_iWeightValue;
+				edgeIndex = i;
+			}
+		}
+	}
+	return edgeIndex;
+}
+
 //克鲁斯卡尔算法
 void CMap::kruskalTree()
 {
@@ -393,13 +431,56 @@ void CMap::new_kruskalTree()
 	}
 }
 
+void CMap::second_kruskalTree()
+{
+	int value = 0;
+	int edgeCount = 0;
+
+	//取出所有的边
+	vector<Edge> vecEdge;
+	for (int i = 0; i < m_iCapacity; i++)
+	{
+		for (int k = i + 1; k < m_iCapacity; k++)
+		{
+			getValueFromMatrix(i, k, value);
+			if (value != 0)
+			{
+				Edge edge(i, k, value);
+				vecEdge.push_back(edge);
+			}
+		}
+	}
+
+	//从所有边中选出最小的边并加入树集合中
+	vector<Edge> treeEdge;
+	int weightValue = 0, Index=0;
+	bool over = false;
+	while (edgeCount < (int)vecEdge.size()) {
+		int maxEdgeIndex = getMaxEdge(vecEdge);
+		//将选中的边设置为已选中
+		vecEdge[maxEdgeIndex].m_bSelected = true;
+		edgeCount++;
+		vector<int> temp;
+		over = false;
+		treeEdge.push_back(vecEdge[maxEdgeIndex]);
+		temp.push_back((int)treeEdge.size() - 1);
+		//cout << "1" << vecEdge[maxEdgeIndex].m_iNodeIndexA << "--" << vecEdge[maxEdgeIndex].m_iNodeIndexB << endl;
+		isCycle(vecEdge[maxEdgeIndex].m_iNodeIndexA, vecEdge[maxEdgeIndex].m_iNodeIndexB, treeEdge, edgeCount, temp, over);
+	}
+	for each (Edge edge in treeEdge)
+	{
+		cout << edge.m_iNodeIndexA << "--" << edge.m_iNodeIndexB << "  " << edge.m_iWeightValue << endl;
+	}
+}
+
+//判断集合中的边是否形成环
 void CMap::isCyCle(int head,int nodeIndexB, vector<Edge> &treeEdge,int &edgeCount)
 {
 	for (int i = 0; i < (int)treeEdge.size(); i++)
 	{
 		if (treeEdge[i].m_iNodeIndexA == nodeIndexB)
 		{
-			if (treeEdge[i].m_iNodeIndexB == head)
+			if (treeEdge[i].m_iNodeIndexB == head) 
 			{
 				treeEdge.erase(treeEdge.begin() + i);
 				edgeCount--;
@@ -409,6 +490,93 @@ void CMap::isCyCle(int head,int nodeIndexB, vector<Edge> &treeEdge,int &edgeCoun
 			{
 				isCyCle(head, treeEdge[i].m_iNodeIndexB, treeEdge, edgeCount);
 			}
+		}
+	}
+}
+
+//判断集合中的边是否形成环，改版的（通过Index和WeightValue确定环中最大的边）
+void CMap::isCycle(int head, int nodeIndexB, vector<Edge>& treeEdge, int & edgeCount, vector<Edge> & temp)
+{
+	for (int i = 0; i < (int)treeEdge.size(); i++)
+	{
+		vector<Edge>::iterator it = find(temp.begin(), temp.end(), treeEdge[i]);
+		if (it != temp.end()) {
+			continue;
+		}
+		if (treeEdge[i].m_iNodeIndexB == nodeIndexB) {
+			temp.push_back(treeEdge[i]);
+			if (treeEdge[i].m_iNodeIndexA == head) {
+				return;
+			}
+			else {
+				isCycle(head, treeEdge[i].m_iNodeIndexA, treeEdge, edgeCount, temp);
+			}
+			temp.erase(temp.end()-1);
+		}
+		if (treeEdge[i].m_iNodeIndexA == nodeIndexB) {
+			temp.push_back(treeEdge[i]);
+			if (treeEdge[i].m_iNodeIndexB == head) {
+				return;
+			}
+			else {
+				isCycle(head, treeEdge[i].m_iNodeIndexB, treeEdge, edgeCount, temp);
+			}
+			temp.erase(temp.end()-1);
+		}
+	}
+}
+
+void CMap::isCycle(int head, int nodeIndexB, vector<Edge>& treeEdge, int & edgeCount, vector<int> & temp, bool & over)
+{
+	for (int i = 0; i < (int)treeEdge.size(); i++)
+	{
+		if (over)
+			break;
+		vector<int>::iterator it = find(temp.begin(), temp.end(), i);
+		if (it != temp.end()) {
+			continue;
+		}
+		if (treeEdge[i].m_iNodeIndexB == nodeIndexB) {
+			temp.push_back(i);
+			if (treeEdge[i].m_iNodeIndexA == head) {
+				int i = temp.at(0);
+				temp.erase(temp.begin());
+				for each (int t in temp)
+				{
+					if (i > t) {
+						i = t;
+					}
+				}
+				over = true;
+				treeEdge.erase(treeEdge.begin() + i);
+				return;
+			}
+			else {
+				isCycle(head, treeEdge[i].m_iNodeIndexA, treeEdge, edgeCount, temp, over);
+			}
+			temp.erase(temp.end() - 1);
+		}
+		if (over)
+			break;
+		if (treeEdge[i].m_iNodeIndexA == nodeIndexB) {
+			temp.push_back(i);
+			if (treeEdge[i].m_iNodeIndexB == head) {
+				int i = temp.at(0); 
+				temp.erase(temp.begin());
+				for each (int t in temp)
+				{
+					if (i > t) {
+						i = t;
+					}
+				}
+				over = true;
+				treeEdge.erase(treeEdge.begin() + i);
+				return;
+			}
+			else {
+				isCycle(head, treeEdge[i].m_iNodeIndexB, treeEdge, edgeCount, temp, over);
+			}
+			temp.erase(temp.end() - 1);
 		}
 	}
 }

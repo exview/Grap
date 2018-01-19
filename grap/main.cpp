@@ -10,7 +10,7 @@ int main(void)
 	Node *pNodeD = new Node('D');
 	Node *pNodeE = new Node('E');
 	Node *pNodeF = new Node('F');
-	//Node *pNodeG = new Node('G');
+	Node *pNodeG = new Node('G');
 	//Node *pNodeH = new Node('H');
 
 	pMap->addNode(pNodeA);
@@ -44,10 +44,33 @@ int main(void)
 	pMap->breadthFirstTraverse(0);
 	cout << endl;*/
 
-	pMap->primTree(0);
+	//pMap->primTree(0);
 	//pMap->kruskalTree();
 
 	//pMap->new_kruskalTree();
+	//pMap->second_kruskalTree();
+
+	CMap *pMap2 = new CMap(7);
+	pMap2->addNode(pNodeA);
+	pMap2->addNode(pNodeB);
+	pMap2->addNode(pNodeC);
+	pMap2->addNode(pNodeD);
+	pMap2->addNode(pNodeE);
+	pMap2->addNode(pNodeF);
+	pMap2->addNode(pNodeG);
+
+	pMap2->setValueToMatrixForUndirectedGraph(0, 1, 6);
+	pMap2->setValueToMatrixForUndirectedGraph(0, 2, 5);
+	pMap2->setValueToMatrixForUndirectedGraph(1, 2, 9);
+	pMap2->setValueToMatrixForUndirectedGraph(1, 4, 13);
+	pMap2->setValueToMatrixForUndirectedGraph(2, 3, 16);
+	pMap2->setValueToMatrixForUndirectedGraph(2, 5, 12);
+	pMap2->setValueToMatrixForUndirectedGraph(3, 4, 15);
+	pMap2->setValueToMatrixForUndirectedGraph(3, 5, 7);
+	pMap2->setValueToMatrixForUndirectedGraph(4, 6, 8);
+	pMap2->setValueToMatrixForUndirectedGraph(5, 6, 3);
+
+	pMap2->second_kruskalTree();
 
 	system("pause");
 	return 0;
